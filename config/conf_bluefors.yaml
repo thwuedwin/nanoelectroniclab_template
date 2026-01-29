@@ -1,0 +1,22 @@
+# station yaml ref: https://microsoft.github.io/Qcodes/examples/basic_examples/Station.html#Default-Station
+# Bluefors configuration
+# Please check the IP address by using `ipconfig` command 
+# in the powershell before you use it.
+
+instruments: 
+    keithely_2400:
+        type: qcodes.instrument_drivers.Keithley.Keithley_2400.Keithley2400
+        address: GPIB1::26::INSTR
+        parameters:
+            output: {initial_value: False}
+            volt: {initial_value: 0, monitor: true}
+
+    SR830:
+        type: qcodes.instrument_drivers.stanford_research.SR830
+        address: GPIB1::3::INSTR
+        enable_forced_reconnect: true
+    
+    SR860:
+        type: qcodes.instrument_drivers.stanford_research.SR860
+        address: GPIB1::4::INSTR
+        enable_forced_reconnect: true
