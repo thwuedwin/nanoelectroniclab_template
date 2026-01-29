@@ -22,7 +22,7 @@ This is a **QCoDeS-based** measurement template designed to standardize the work
 ├── config/             # Station configurations
 ├── drivers/            # Custom instrument drivers (Bluefors temperature API, etc.)
 └── lab_utils/          # Shared utility toolbox (Analysis, Plotting, Path management)
-
+```
 ### Measurement Workflow & Data Management
 
 To ensure a structured and collaborative environment, the lab follows a specific directory convention:
