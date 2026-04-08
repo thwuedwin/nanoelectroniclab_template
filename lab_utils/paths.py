@@ -14,3 +14,11 @@ DRIVER_DIR = ROOT_DIR / "drivers"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 CONFIG_BLUEFORS = str((CONFIG_DIR / "conf_bluefors.yaml").resolve())
+
+if __name__ == '__main__':
+    print(
+         f'ROOT_DIR: {ROOT_DIR}\n'
+         f'DATA_DIR: {DATA_DIR}\n'
+         f'CONFIG_DIR: {CONFIG_DIR}\n'
+         f'DRIVER_DIR: {DRIVER_DIR}\n'
+    )
