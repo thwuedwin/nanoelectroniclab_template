@@ -5,21 +5,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 # 專案的基本資訊
-name = "nanoelectroniclab_qcodes"          # 套件名稱（安裝後在 pip list 看到的名稱）
+name = "nanoelectroniclab_qcodes"
 version = "0.1.0"
 description = "nanoelectroniclab QCoDeS template"
-readme = "README.md"           # 讀取你的說明文件
-requires-python = ">=3.12"     # 限制 Python 版本
+readme = "README.md"
+requires-python = ">=3.12"
 
 # 這裡列出實驗室「一定要安裝」的套件
 dependencies = [
     "qcodes>=0.40.0",
     "numpy",
     "matplotlib",
-    "pyvisa-py",               # 儀器通訊基礎
-    "typing_extensions",       # 處理你之前提到的 Unpack
+    "pyvisa-py",
+    "typing_extensions",
     "plottr",
     "requests>=2.32.5",
+    "qcodes-contrib-drivers>=0.24.1",
 ]
 
 [tool.setuptools]
