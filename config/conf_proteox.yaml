@@ -1,0 +1,22 @@
+# station yaml ref: https://microsoft.github.io/Qcodes/examples/basic_examples/Station.html#Default-Station
+# klab proteox configuration
+# Please check the IP address by using command `ipconfig` in the powershell before you use it.
+
+instruments: 
+    keithely_2400:
+        type: qcodes.instrument_drivers.Keithley.Keithley_2400.Keithley2400
+        address: GPIB0::26::INSTR
+        parameters:
+            output: {initial_value: False}
+            volt: {initial_value: 0, monitor: true}
+
+    SR830:
+        type: qcodes.instrument_drivers.stanford_research.SR830
+        address: GPIB0::1::INSTR
+        enable_forced_reconnect: true
+    
+    SR830:
+        type: qcodes.instrument_drivers.stanford_research.SR830
+        address: GPIB0::2::INSTR
+        enable_forced_reconnect: true
+    

@@ -14,6 +14,7 @@ DRIVER_DIR = ROOT_DIR / "drivers"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 CONFIG_BLUEFORS = str((CONFIG_DIR / "conf_bluefors.yaml").resolve())
+CONFIG_PROTEOX = str((CONFIG_DIR / "conf_proteox.yaml").resolve())
 
 if __name__ == '__main__':
     print(
