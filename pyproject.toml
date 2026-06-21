@@ -21,8 +21,10 @@ dependencies = [
     "plottr",
     "requests>=2.32.5",
     "qcodes-contrib-drivers>=0.24.1",
+    "pyqtgraph>=0.13",
+    "PySide6>=6.6",
 ]
 
-[tool.setuptools]
-# 告訴 Python 哪些資料夾應該被當作套件模組
-packages = ["drivers", "lab_utils"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["drivers*", "lab_utils*"]

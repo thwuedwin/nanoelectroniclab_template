@@ -70,4 +70,5 @@ $RECYCLE.BIN/
 # 儀器地址、密碼等私密設定
 
 experiments/*
-!experiments/templates
+!experiments/templates/
+!experiments/templates/**

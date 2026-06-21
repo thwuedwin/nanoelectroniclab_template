@@ -48,7 +48,7 @@ exp = load_or_create_experiment(
 )
 
 # %% == Load instruments ==
-kei = station.load_instrument('keithely_2400')
+kei = station.load_instrument('keithley_2400')
 
 # %% Parameters
 current_time = Parameter(
