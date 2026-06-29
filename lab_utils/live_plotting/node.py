@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import sys
 import threading
 import traceback
@@ -40,6 +41,7 @@ class QfortMeasNode:
         self.metadata: dict[str, Any] = {}
         self._custom_metadata: dict[str, Any] = {}
         self._exp_func: Callable[[DataSaver], Any] | None = None
+        self._exp_source: str | None = None
         self._cancel_event = threading.Event()
         self._worker: threading.Thread | None = None
         self._window: LivePlotWindow | None = None
@@ -176,6 +178,11 @@ class QfortMeasNode:
     def run(self, func: Callable[[DataSaver], Any]) -> Callable[[DataSaver], Any]:
         """Decorator registering ``exp(datasaver)``; does not start measurement."""
         self._exp_func = func
+        if "exp_source" not in self._custom_metadata:
+            try:
+                self._exp_source = inspect.getsource(func).rstrip() + "\n"
+            except (OSError, TypeError):
+                self._exp_source = None
         return func
 
     def request_cancel(self) -> None:
@@ -253,11 +260,13 @@ class QfortMeasNode:
             raise RuntimeError("Cannot save record before a measurement run_id is set")
 
         timestamp = self._measurement_started_at or datetime.now()
+        exp_source = self._custom_metadata.get("exp_source") or self._exp_source or ""
         record = build_record(
             config=self._record_config_snapshot(),
             run_id=run_id,
             database_path=self._database_path,
             custom=self._custom_metadata,
+            exp_source=exp_source,
             plot_traces=self.plot.trace_dicts(),
             timestamp=timestamp,
             instruments=self.instruments or {},
