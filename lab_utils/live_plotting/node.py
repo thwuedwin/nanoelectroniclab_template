@@ -19,6 +19,7 @@ from qcodes.dataset import (
 )
 from qcodes.dataset.measurements import DataSaver
 
+from lab_utils.live_plotting.csv_export import default_csv_path, export_dataset_to_csv
 from lab_utils.live_plotting.metadata import (
     build_record,
     default_record_path,
@@ -335,6 +336,11 @@ class QfortMeasNode:
                 if not self.cancelled:
                     record_path = self.save()
                     dataset.add_metadata("qfort_record_path", str(record_path))
+                    csv_path = export_dataset_to_csv(
+                        dataset,
+                        default_csv_path(self.config["user"], run_id),
+                    )
+                    self.metadata["csv_path"] = str(csv_path)
 
             self._window.measurement_finished.emit(run_id, self._last_point_count)
         except Exception:
