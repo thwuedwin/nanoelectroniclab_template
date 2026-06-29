@@ -124,7 +124,7 @@ node.plot.set_title(config["exp_name"])
 
 
 @node.run
-def exp(datasaver):
+def exp(save):
     node.add_metadata("note", "demo sweep" if DEMO_MODE else "hall measurement")
     node.param("source_drain")(0.1)
 
@@ -133,11 +133,7 @@ def exp(datasaver):
         if node.cancelled:
             break
         bg(v)
-        datasaver.add_result(
-            (bg, v),
-            (node.param("Vxx_r"), node.param("Vxx_r")()),
-            (node.param("Vxy_r"), node.param("Vxy_r")()),
-        )
+        save((bg, v))
         if DEMO_MODE:
             time.sleep(0.05)
 

@@ -74,18 +74,12 @@ def _prepare_magnet(magnet: AMIModel430) -> None:
     magnet.field(0)
 
 
-def _measure_point(datasaver, field_param, branch: str) -> None:
-    _set_branch(branch)
-    datasaver.add_result(
-        (field_param, field_param()),
-        (node.param("branch"), branch),
-        (node.param("Vxx"), node.param("Vxx")()),
-        (node.param("Vxx_phase"), node.param("Vxx_phase")()),
-    )
+def _measure_point(save, field_param) -> None:
+    save((field_param, field_param()))
 
 
 def _sweep_branch(
-    datasaver,
+    save,
     field_param,
     values: np.ndarray,
     branch: str,
@@ -96,11 +90,12 @@ def _sweep_branch(
         field_param(b)
         if SETTLING_S > 0:
             time.sleep(SETTLING_S)
-        _measure_point(datasaver, field_param, branch)
+        _set_branch(branch)
+        _measure_point(save, field_param)
 
 
 @node.run
-def exp(datasaver):
+def exp(save):
     magnet: AMIModel430 = node.instruments["ami430_z"]
     _prepare_magnet(magnet)
 
@@ -108,8 +103,8 @@ def exp(datasaver):
     up = np.linspace(B_MIN, B_MAX, N_POINTS)
     down = np.linspace(B_MAX, B_MIN, N_POINTS)[1:]
 
-    _sweep_branch(datasaver, field_param, up, branch="up")
-    _sweep_branch(datasaver, field_param, down, branch="down")
+    _sweep_branch(save, field_param, up, branch="up")
+    _sweep_branch(save, field_param, down, branch="down")
 
 
 if __name__ == "__main__":

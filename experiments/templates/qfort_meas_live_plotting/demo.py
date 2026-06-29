@@ -48,7 +48,7 @@ node.plot.set_title(config["exp_name"])
 
 
 @node.run
-def exp(datasaver):
+def exp(save):
     node.param("source_drain")(0)
 
     time_param = node.param("time")
@@ -57,11 +57,7 @@ def exp(datasaver):
         if node.cancelled:
             break
         elapsed = time.time() - t0
-        datasaver.add_result(
-            (time_param, elapsed),
-            (node.param("Vxx"), node.param("Vxx")()),
-            (node.param("Vxx_phase"), node.param("Vxx_phase")()),
-        )
+        save((time_param, elapsed))
         time.sleep(INTERVAL_S)
 
 

@@ -18,8 +18,6 @@ from qcodes.dataset import (
     initialise_or_create_database_at,
     load_or_create_experiment,
 )
-from qcodes.dataset.measurements import DataSaver
-
 from lab_utils.live_plotting.csv_export import default_csv_path, export_dataset_to_csv
 from lab_utils.live_plotting.metadata import (
     build_record,
@@ -27,6 +25,7 @@ from lab_utils.live_plotting.metadata import (
     save_record,
 )
 from lab_utils.live_plotting.params import ParameterRegistry
+from lab_utils.live_plotting.setpoint_saver import SetpointSaver
 from lab_utils.live_plotting.qtbackend import LivePlotWindow, PlotManager, run_qt_app
 from lab_utils.paths import CONFIG_DIR, DATA_DIR
 
@@ -40,7 +39,7 @@ class QfortMeasNode:
 
         self.metadata: dict[str, Any] = {}
         self._custom_metadata: dict[str, Any] = {}
-        self._exp_func: Callable[[DataSaver], Any] | None = None
+        self._exp_func: Callable[[SetpointSaver], Any] | None = None
         self._exp_source: str | None = None
         self._cancel_event = threading.Event()
         self._worker: threading.Thread | None = None
@@ -175,8 +174,8 @@ class QfortMeasNode:
     def add_metadata(self, key: str, value: Any) -> None:
         self._custom_metadata[key] = value
 
-    def run(self, func: Callable[[DataSaver], Any]) -> Callable[[DataSaver], Any]:
-        """Decorator registering ``exp(datasaver)``; does not start measurement."""
+    def run(self, func: Callable[[SetpointSaver], Any]) -> Callable[[SetpointSaver], Any]:
+        """Decorator registering ``exp(save)``; does not start measurement."""
         self._exp_func = func
         if "exp_source" not in self._custom_metadata:
             try:
@@ -188,7 +187,7 @@ class QfortMeasNode:
     def request_cancel(self) -> None:
         self._cancel_event.set()
 
-    def _patch_datasaver_cache_lock(self, datasaver: DataSaver) -> None:
+    def _patch_datasaver_cache_lock(self, datasaver: Any) -> None:
         """Wrap ``add_result`` so cache writes serialize with plot reads."""
         original = datasaver.add_result
 
@@ -335,7 +334,8 @@ class QfortMeasNode:
                 bridge.bind_dataset(dataset)
                 dataset.subscribe(bridge.on_results, min_wait=0, min_count=1)
 
-                self._exp_func(datasaver)
+                save = SetpointSaver(datasaver, self._registry)
+                self._exp_func(save)
 
                 with self._cache_lock:
                     self._last_point_count = self._point_count_from_cache(
