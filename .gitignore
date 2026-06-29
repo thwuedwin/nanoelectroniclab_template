@@ -72,3 +72,6 @@ $RECYCLE.BIN/
 experiments/*
 !experiments/templates/
 !experiments/templates/**
+# Re-ignore build artifacts un-negated by experiments/templates/** above
+**/__pycache__/
+**/*.py[cod]
