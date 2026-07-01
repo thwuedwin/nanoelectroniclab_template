@@ -201,8 +201,7 @@ class QfortMeasNode:
     def _point_count_from_cache(self, dataset: Any) -> int:
         """Return the number of measurement rows (setpoint steps) in *dataset* cache.
 
-        Uses 1-D array lengths from the live cache — not ``dataset.subscribe``'s
-        *length*, which counts SQLite INSERT rows (one per dependent tree per point).
+        Uses 1-D array lengths from the live in-memory cache.
         """
         assert self._registry is not None
         cache = dataset.cache.data()
@@ -329,10 +328,7 @@ class QfortMeasNode:
                 self.metadata["run_id"] = run_id
                 self._patch_datasaver_cache_lock(datasaver)
 
-                dataset = datasaver.dataset
-                bridge = self._window.bridge
-                bridge.bind_dataset(dataset)
-                dataset.subscribe(bridge.on_results, min_wait=0, min_count=1)
+                self._window.bridge.bind_dataset(datasaver.dataset)
 
                 save = SetpointSaver(datasaver, self._registry)
                 self._exp_func(save)
@@ -344,9 +340,11 @@ class QfortMeasNode:
 
                 if not self.cancelled:
                     record_path = self.save()
-                    dataset.add_metadata("qfort_record_path", str(record_path))
+                    datasaver.dataset.add_metadata(
+                        "qfort_record_path", str(record_path)
+                    )
                     csv_path = export_dataset_to_csv(
-                        dataset,
+                        datasaver.dataset,
                         default_csv_path(self.config["user"], run_id),
                     )
                     self.metadata["csv_path"] = str(csv_path)

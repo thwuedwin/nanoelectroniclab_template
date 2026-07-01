@@ -106,9 +106,7 @@ class PlotManager(QtCore.QObject):
 
 
 class PlotBridge(QtCore.QObject):
-    """Thread-safe bridge: dataset subscribe callback → coalesced Qt signal."""
-
-    plot_update_requested = QtCore.Signal()
+    """Read live plot arrays from the bound dataset's in-memory cache."""
 
     def __init__(self, node: QfortMeasNode) -> None:
         super().__init__()
@@ -118,23 +116,13 @@ class PlotBridge(QtCore.QObject):
     def bind_dataset(self, dataset: Any) -> None:
         self._dataset = dataset
 
-    def on_results(
-        self,
-        result: Any,
-        length: int,
-        state: Any | None = None,
-    ) -> None:
-        if self._dataset is None:
-            return
-        # Do not use *length*: it counts DB INSERT rows, not setpoint steps.
-        self.plot_update_requested.emit()
-
     def _param_dataset_key(self, param: Any) -> str:
         """qcodes cache keys use ``register_name``, not bare ``Parameter.name``."""
         return getattr(param, "register_name", None) or param.name
 
     def extract_plot_data(self) -> dict[int, dict[str, np.ndarray]]:
-        assert self._dataset is not None
+        if self._dataset is None:
+            return {}
         updates: dict[int, dict[str, np.ndarray]] = {}
 
         with self._node._cache_lock:
@@ -173,9 +161,11 @@ class LivePlotWindow(QtWidgets.QMainWindow):
         self._curve_items: dict[int, pg.PlotDataItem] = {}
         self._right_view: pg.ViewBox | None = None
 
+        refresh_ms = int(
+            node.config.get("plot_refresh_interval_ms", PLOT_REFRESH_INTERVAL_MS)
+        )
         self._plot_refresh_timer = QtCore.QTimer(self)
-        self._plot_refresh_timer.setSingleShot(True)
-        self._plot_refresh_timer.setInterval(PLOT_REFRESH_INTERVAL_MS)
+        self._plot_refresh_timer.setInterval(refresh_ms)
         self._plot_refresh_timer.timeout.connect(self._refresh_plot)
 
         self.setWindowTitle(
@@ -209,10 +199,6 @@ class LivePlotWindow(QtWidgets.QMainWindow):
         self.measurement_failed.connect(self._on_measurement_failed)
 
         self._bridge = PlotBridge(node)
-        self._bridge.plot_update_requested.connect(
-            self._schedule_plot_refresh,
-            QtCore.Qt.ConnectionType.QueuedConnection,
-        )
 
         node.plot._attach_window(self)
 
@@ -240,11 +226,6 @@ class LivePlotWindow(QtWidgets.QMainWindow):
 
         self._curve_items[spec.trace_id] = curve
 
-    @QtCore.Slot()
-    def _schedule_plot_refresh(self) -> None:
-        if not self._plot_refresh_timer.isActive():
-            self._plot_refresh_timer.start()
-
     def _refresh_plot(self) -> None:
         payload = self._bridge.extract_plot_data()
         point_count = 0
@@ -266,6 +247,8 @@ class LivePlotWindow(QtWidgets.QMainWindow):
 
     def set_measuring(self, active: bool) -> None:
         if active:
+            self._plot_refresh_timer.start()
+        else:
             self._plot_refresh_timer.stop()
         self._start_btn.setEnabled(not active)
         self._stop_btn.setEnabled(active)
